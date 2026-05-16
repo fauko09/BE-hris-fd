@@ -37,7 +37,7 @@ jobs:
       - name: Create .env file
         run: |
           cat > build/.env << EOF
-          DB_HOST=127.0.0.1
+          DB_HOST=localhost
           DB_PORT=3306
           DB_USER=hris_user
           DB_PASSWORD=@FawqHrisSV26
