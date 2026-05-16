@@ -46,27 +46,27 @@ jobs:
           APP_PORT=${{ secrets.APP_PORT }}
           EOF
 
+      - name: Prepare SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p 22 IP_PUBLIC_VPS >> ~/.ssh/known_hosts
+
       - name: Copy files to VPS
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          port: ${{ secrets.VPS_PORT }}
-          source: "build/app,build/.env"
-          target: "/var/www/hris/api"
+        run: |
+          ssh -i ~/.ssh/deploy_key -p 22 root@IP_PUBLIC_VPS "mkdir -p /var/www/hris/api"
+
+          scp -i ~/.ssh/deploy_key -P 22 build/app root@IP_PUBLIC_VPS:/var/www/hris/api/app
+          scp -i ~/.ssh/deploy_key -P 22 build/.env root@IP_PUBLIC_VPS:/var/www/hris/api/.env
 
       - name: Restart app on VPS
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          port: ${{ secrets.VPS_PORT }}
-          script: |
-            cd /var/www/hris-app/build
+        run: |
+          ssh -i ~/.ssh/deploy_key -p 22 root@IP_PUBLIC_VPS << 'EOF'
+            cd /var/www/hris/api
             chmod +x app
             pm2 delete hris-api || true
             pm2 start ./app --name hris-api
             pm2 save
             sudo systemctl reload nginx
+          EOF
