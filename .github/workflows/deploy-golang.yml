@@ -51,18 +51,18 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.DEPLOY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -p 22 IP_PUBLIC_VPS >> ~/.ssh/known_hosts
+          ssh-keyscan -p 22 151.240.0.108 >> ~/.ssh/known_hosts
 
       - name: Copy files to VPS
         run: |
-          ssh -i ~/.ssh/deploy_key -p 22 root@IP_PUBLIC_VPS "mkdir -p /var/www/hris/api"
+          ssh -i ~/.ssh/deploy_key -p 22 root@151.240.0.108 "mkdir -p /var/www/hris/api"
 
-          scp -i ~/.ssh/deploy_key -P 22 build/app root@IP_PUBLIC_VPS:/var/www/hris/api/app
-          scp -i ~/.ssh/deploy_key -P 22 build/.env root@IP_PUBLIC_VPS:/var/www/hris/api/.env
+          scp -i ~/.ssh/deploy_key -P 22 build/app root@151.240.0.108:/var/www/hris/api/app
+          scp -i ~/.ssh/deploy_key -P 22 build/.env root@151.240.0.108:/var/www/hris/api/.env
 
       - name: Restart app on VPS
         run: |
-          ssh -i ~/.ssh/deploy_key -p 22 root@IP_PUBLIC_VPS << 'EOF'
+          ssh -i ~/.ssh/deploy_key -p 22 root@151.240.0.108 << 'EOF'
             cd /var/www/hris/api
             chmod +x app
             pm2 delete hris-api || true
