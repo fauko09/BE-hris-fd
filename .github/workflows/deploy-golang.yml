@@ -37,7 +37,7 @@ jobs:
       - name: Create .env file
         run: |
           cat > build/.env << EOF
-          DB_HOST=localhost
+          DB_HOST=127.0.0.1
           DB_PORT=3306
           DB_USER=hris_user
           DB_PASSWORD=@FawqHrisSV26
@@ -48,7 +48,7 @@ jobs:
       - name: Prepare SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.DEPLOY }}" > ~/.ssh/deploy_key
+          printf '%s\n' "${{ secrets.DEPLOY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -p 22 151.240.0.108 >> ~/.ssh/known_hosts
 
@@ -59,13 +59,62 @@ jobs:
           scp -i ~/.ssh/deploy_key -P 22 build/app root@151.240.0.108:/var/www/hris/api/app
           scp -i ~/.ssh/deploy_key -P 22 build/.env root@151.240.0.108:/var/www/hris/api/.env
 
+      - name: Configure Nginx
+        run: |
+          ssh -i ~/.ssh/deploy_key -p 22 root@151.240.0.108 << 'EOF'
+            set -e
+
+            sudo tee /etc/nginx/sites-available/hris-api > /dev/null << 'NGINX'
+            server {
+                listen 80;
+                server_name 151.240.0.108 _;
+
+                client_max_body_size 50M;
+
+                location / {
+                    proxy_pass http://127.0.0.1:8986;
+                    proxy_http_version 1.1;
+
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto $scheme;
+
+                    proxy_set_header Upgrade $http_upgrade;
+                    proxy_set_header Connection "upgrade";
+
+                    proxy_read_timeout 300;
+                    proxy_connect_timeout 300;
+                    proxy_send_timeout 300;
+                }
+            }
+            NGINX
+
+            sudo ln -sf /etc/nginx/sites-available/hris-api /etc/nginx/sites-enabled/hris-api
+
+            if [ -f /etc/nginx/sites-enabled/default ]; then
+              sudo rm -f /etc/nginx/sites-enabled/default
+            fi
+
+            sudo nginx -t
+            sudo systemctl reload nginx
+          EOF
+
       - name: Restart app on VPS
         run: |
           ssh -i ~/.ssh/deploy_key -p 22 root@151.240.0.108 << 'EOF'
+            set -e
+
             cd /var/www/hris/api
             chmod +x app
+
             pm2 delete hris-api || true
-            pm2 start ./app --name hris-api
+            pm2 start ./app --name hris-api --update-env
             pm2 save
+
+            sleep 2
+            pm2 list
+            pm2 logs hris-api --lines 50 --nostream
+
             sudo systemctl reload nginx
           EOF
