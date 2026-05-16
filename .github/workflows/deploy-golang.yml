@@ -37,13 +37,12 @@ jobs:
       - name: Create .env file
         run: |
           cat > build/.env << EOF
-          DB_HOST=${{ secrets.DB_HOST }}
-          DB_PORT=${{ secrets.DB_PORT }}
-          DB_USER=${{ secrets.DB_USER }}
-          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-          DB_NAME=${{ secrets.DB_NAME }}
-          JWT_SECRET=${{ secrets.JWT_SECRET }}
-          APP_PORT=${{ secrets.APP_PORT }}
+          DB_HOST=localhost
+          DB_PORT=3306
+          DB_USER=hris_user
+          DB_PASSWORD=@FawqHrisSV26
+          DB_NAME=hris
+          APP_PORT=8986
           EOF
 
       - name: Prepare SSH
