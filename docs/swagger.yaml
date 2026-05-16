@@ -1,0 +1,932 @@
+basePath: /api/v1
+definitions:
+  model.ApproveCutiRequest:
+    properties:
+      catatan_hr:
+        type: string
+      status:
+        type: string
+    required:
+    - status
+    type: object
+  model.CutiRequest:
+    properties:
+      alasan:
+        type: string
+      tanggal_akhir:
+        type: string
+      tanggal_mulai:
+        type: string
+      tipe_cuti:
+        type: string
+    required:
+    - alasan
+    - tanggal_akhir
+    - tanggal_mulai
+    - tipe_cuti
+    type: object
+  model.DataUserRequest:
+    properties:
+      alamat_ktp:
+        type: string
+      alamat_tinggal:
+        type: string
+      divisi_id:
+        type: string
+      domisili_ktp:
+        type: string
+      domisili_lahir:
+        type: string
+      domisili_tinggal:
+        type: string
+      is_bpjs_tk:
+        type: boolean
+      jabatan_id:
+        type: string
+      jenis_asuransi:
+        type: string
+      nama_asuransi:
+        type: string
+      no_asuransi:
+        type: string
+      no_bpjs:
+        type: string
+      no_npwp:
+        type: string
+      no_rekening:
+        type: string
+      nomor_telepon:
+        type: string
+      nomor_telepon_darurat:
+        type: string
+      nomor_telepon_second:
+        type: string
+      prov_ktp:
+        type: string
+      prov_tinggal:
+        type: string
+      status:
+        type: string
+      status_perkawinan:
+        type: string
+      tanggal_lahir:
+        type: string
+      tanggal_masuk:
+        type: string
+      tipe_bank:
+        type: string
+      tipe_tinggal:
+        type: string
+    type: object
+  model.DivisiRequest:
+    properties:
+      name_divisi:
+        type: string
+    required:
+    - name_divisi
+    type: object
+  model.JabatanRequest:
+    properties:
+      nama_jabatan:
+        type: string
+    required:
+    - nama_jabatan
+    type: object
+  model.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  model.PenggajianRequest:
+    properties:
+      gaji_pokok:
+        type: number
+      keterangan:
+        type: string
+      periode:
+        type: string
+      potongan:
+        type: number
+      tunjangan:
+        type: number
+      uid:
+        type: string
+    required:
+    - gaji_pokok
+    - periode
+    - uid
+    type: object
+  model.RegisterRequest:
+    properties:
+      email:
+        type: string
+      fullname:
+        type: string
+      nik:
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - email
+    - fullname
+    - nik
+    - password
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API untuk sistem HRIS (Human Resource Information System)
+  title: HRIS API
+  version: "1.0"
+paths:
+  /absensi/clock-in:
+    post:
+      consumes:
+      - application/json
+      description: Karyawan melakukan clock in
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Clock In
+      tags:
+      - Absensi
+  /absensi/clock-out:
+    post:
+      consumes:
+      - application/json
+      description: Karyawan melakukan clock out
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Clock Out
+      tags:
+      - Absensi
+  /absensi/me:
+    get:
+      description: Ambil riwayat absensi user yang sedang login
+      parameters:
+      - description: Bulan (1-12)
+        in: query
+        name: bulan
+        type: integer
+      - description: 'Tahun (contoh: 2026)'
+        in: query
+        name: tahun
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get absensi saya
+      tags:
+      - Absensi
+  /absensi/today:
+    get:
+      description: Ambil semua absensi hari ini (admin)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get absensi hari ini
+      tags:
+      - Absensi
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Login dan mendapatkan JWT token
+      parameters:
+      - description: Login Request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/model.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Login user
+      tags:
+      - Auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Membuat akun user baru
+      parameters:
+      - description: Register Request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/model.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Register user baru
+      tags:
+      - Auth
+  /cuti:
+    get:
+      description: Ambil semua pengajuan cuti (admin)
+      parameters:
+      - description: Filter status (pending/approved/rejected)
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get semua cuti
+      tags:
+      - Cuti
+    post:
+      consumes:
+      - application/json
+      description: Karyawan mengajukan permohonan cuti
+      parameters:
+      - description: Cuti Request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/model.CutiRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Ajukan cuti
+      tags:
+      - Cuti
+  /cuti/{id}/approve:
+    put:
+      consumes:
+      - application/json
+      description: HR menyetujui atau menolak pengajuan cuti
+      parameters:
+      - description: Cuti ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Approve Request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/model.ApproveCutiRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Approve/Reject cuti
+      tags:
+      - Cuti
+  /cuti/me:
+    get:
+      description: Ambil riwayat cuti user yang sedang login
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get cuti saya
+      tags:
+      - Cuti
+  /divisi:
+    get:
+      description: Ambil daftar semua divisi
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get semua divisi
+      tags:
+      - Divisi
+    post:
+      consumes:
+      - application/json
+      description: Tambah divisi baru
+      parameters:
+      - description: Divisi Request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/model.DivisiRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Buat divisi
+      tags:
+      - Divisi
+  /divisi/{id}:
+    delete:
+      description: Hapus divisi berdasarkan ID
+      parameters:
+      - description: Divisi ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete divisi
+      tags:
+      - Divisi
+    put:
+      consumes:
+      - application/json
+      description: Update nama divisi berdasarkan ID
+      parameters:
+      - description: Divisi ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Divisi Request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/model.DivisiRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update divisi
+      tags:
+      - Divisi
+  /employees:
+    get:
+      description: Ambil semua data detail karyawan
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get semua data karyawan
+      tags:
+      - Employees
+  /employees/{uid}/data:
+    get:
+      description: Ambil data detail karyawan berdasarkan UID
+      parameters:
+      - description: User ID
+        in: path
+        name: uid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get data user by UID
+      tags:
+      - Employees
+    post:
+      consumes:
+      - application/json
+      description: Simpan data detail karyawan
+      parameters:
+      - description: User ID
+        in: path
+        name: uid
+        required: true
+        type: string
+      - description: Data User Request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/model.DataUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Buat data user
+      tags:
+      - Employees
+  /employees/{uid}/photo:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload foto profil karyawan berdasarkan UID
+      parameters:
+      - description: User ID
+        in: path
+        name: uid
+        required: true
+        type: string
+      - description: File foto (jpg/jpeg/png, max 2MB)
+        in: formData
+        name: photo
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Upload foto karyawan
+      tags:
+      - Employees
+  /jabatan:
+    get:
+      description: Ambil daftar semua jabatan
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get semua jabatan
+      tags:
+      - Jabatan
+    post:
+      consumes:
+      - application/json
+      description: Tambah jabatan baru
+      parameters:
+      - description: Jabatan Request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/model.JabatanRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Buat jabatan
+      tags:
+      - Jabatan
+  /jabatan/{id}:
+    delete:
+      description: Hapus jabatan berdasarkan ID
+      parameters:
+      - description: Jabatan ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete jabatan
+      tags:
+      - Jabatan
+    put:
+      consumes:
+      - application/json
+      description: Update nama jabatan berdasarkan ID
+      parameters:
+      - description: Jabatan ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Jabatan Request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/model.JabatanRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update jabatan
+      tags:
+      - Jabatan
+  /penggajian:
+    get:
+      description: Ambil semua data penggajian (admin)
+      parameters:
+      - description: 'Filter periode (contoh: 2026-05)'
+        in: query
+        name: periode
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get semua penggajian
+      tags:
+      - Penggajian
+    post:
+      consumes:
+      - application/json
+      description: Tambah data gaji karyawan
+      parameters:
+      - description: Penggajian Request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/model.PenggajianRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Buat data penggajian
+      tags:
+      - Penggajian
+  /penggajian/{id}/bayar:
+    put:
+      description: Update status gaji menjadi paid
+      parameters:
+      - description: Gaji ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Bayar gaji
+      tags:
+      - Penggajian
+  /penggajian/me:
+    get:
+      description: Ambil riwayat gaji user yang sedang login
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get gaji saya
+      tags:
+      - Penggajian
+  /users:
+    get:
+      description: Ambil daftar semua user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get semua user
+      tags:
+      - Users
+  /users/{id}:
+    delete:
+      description: Hapus user berdasarkan ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete user
+      tags:
+      - Users
+    get:
+      description: Ambil data user berdasarkan ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get user by ID
+      tags:
+      - Users
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

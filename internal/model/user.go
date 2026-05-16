@@ -8,7 +8,7 @@ import (
 )
 
 type User struct {
-	UID       uuid.UUID      `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"uid"`
+	UID       string         `gorm:"type:char(36);primaryKey" json:"uid"`
 	Fullname  string         `gorm:"type:varchar(100);not null" json:"fullname"`
 	NIK       string         `gorm:"type:varchar(16);unique;not null" json:"nik"`
 	Email     string         `gorm:"type:varchar(255);unique;not null" json:"email"`
@@ -18,6 +18,13 @@ type User struct {
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 	DataUser  *DataUser      `gorm:"foreignKey:UID" json:"data_user,omitempty"`
+}
+
+func (u *User) BeforeCreate(tx *gorm.DB) error {
+	if u.UID == "" {
+		u.UID = uuid.New().String()
+	}
+	return nil
 }
 
 type RegisterRequest struct {

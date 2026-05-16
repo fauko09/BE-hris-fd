@@ -10,11 +10,11 @@ import (
 )
 
 func CreateCuti(cuti *model.Cuti) error {
-cuti.CutiID = uuid.New()
+cuti.CutiID = uuid.New().String()
 return config.DB.Create(cuti).Error
 }
 
-func GetCutiByUID(uid uuid.UUID) ([]model.Cuti, error) {
+func GetCutiByUID(uid string) ([]model.Cuti, error) {
 var list []model.Cuti
 err := config.DB.Where("uid = ?", uid).Order("created_at DESC").Find(&list).Error
 return list, err
@@ -30,7 +30,7 @@ err := query.Order("created_at DESC").Find(&list).Error
 return list, err
 }
 
-func ApproveCuti(cutiID, approverUID uuid.UUID, req model.ApproveCutiRequest) error {
+func ApproveCuti(cutiID, approverUID string, req model.ApproveCutiRequest) error {
 now := time.Now()
 updates := map[string]interface{}{
 "status":      req.Status,
