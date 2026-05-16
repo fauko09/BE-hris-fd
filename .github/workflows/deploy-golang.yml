@@ -56,7 +56,7 @@ jobs:
         run: |
           ssh -i ~/.ssh/deploy_key -p 22 root@151.240.0.108 "mkdir -p /var/www/hris/api"
 
-          scp -i ~/.ssh/deploy_key -P 22 build/app root@151.240.0.108:/var/www/hris/api/app
+          scp -i ~/.ssh/deploy_key -P 22 build/app root@151.240.0.108:/var/www/hris/api/
           scp -i ~/.ssh/deploy_key -P 22 build/.env root@151.240.0.108:/var/www/hris/api/.env
 
       - name: Configure Nginx
