@@ -10,13 +10,13 @@ import (
 )
 
 func CreatePenggajian(p *model.Penggajian) error {
-p.GajiID = uuid.New()
+p.GajiID = uuid.New().String()
 p.PotonganBPJS = p.GajiPokok * 0.01
 p.TotalGaji = p.GajiPokok + p.Tunjangan - p.Potongan - p.PotonganBPJS
 return config.DB.Create(p).Error
 }
 
-func GetPenggajianByUID(uid uuid.UUID) ([]model.Penggajian, error) {
+func GetPenggajianByUID(uid string) ([]model.Penggajian, error) {
 var list []model.Penggajian
 err := config.DB.Where("uid = ?", uid).Order("periode DESC").Find(&list).Error
 return list, err
@@ -32,7 +32,7 @@ err := query.Order("periode DESC").Find(&list).Error
 return list, err
 }
 
-func BayarGaji(gajiID uuid.UUID) error {
+func BayarGaji(gajiID string) error {
 now := time.Now()
 return config.DB.Model(&model.Penggajian{}).
 Where("gaji_id = ?", gajiID).

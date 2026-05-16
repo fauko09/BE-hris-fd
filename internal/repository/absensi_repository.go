@@ -10,7 +10,7 @@ import (
 "github.com/google/uuid"
 )
 
-func ClockIn(uid uuid.UUID, lokasi string) (*model.Absensi, error) {
+func ClockIn(uid string, lokasi string) (*model.Absensi, error) {
 now := time.Now()
 today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 
@@ -21,7 +21,7 @@ return nil, fmt.Errorf("sudah clock in hari ini")
 }
 
 absensi := &model.Absensi{
-AbsensiID:   uuid.New(),
+AbsensiID:   uuid.New().String(),
 UID:         uid,
 Tanggal:     today,
 JamMasuk:    &now,
@@ -31,7 +31,7 @@ LokasiMasuk: &lokasi,
 return absensi, config.DB.Create(absensi).Error
 }
 
-func ClockOut(uid uuid.UUID, lokasi string) (*model.Absensi, error) {
+func ClockOut(uid string, lokasi string) (*model.Absensi, error) {
 now := time.Now()
 today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 
@@ -49,7 +49,7 @@ absensi.LokasiKeluar = &lokasi
 return &absensi, config.DB.Save(&absensi).Error
 }
 
-func GetAbsensiByUID(uid uuid.UUID, bulan, tahun int) ([]model.Absensi, error) {
+func GetAbsensiByUID(uid string, bulan, tahun int) ([]model.Absensi, error) {
 var list []model.Absensi
 query := config.DB.Where("uid = ?", uid)
 if bulan > 0 && tahun > 0 {

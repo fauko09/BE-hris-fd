@@ -4,13 +4,14 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type DataUser struct {
-	DaID                uuid.UUID  `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"da_id"`
-	UID                 uuid.UUID  `gorm:"type:uuid;not null;unique" json:"uid"`
-	DivisiID            *uuid.UUID `gorm:"type:uuid" json:"divisi_id"`
-	JabatanID           *uuid.UUID `gorm:"type:uuid" json:"jabatan_id"`
+	DaID                string     `gorm:"type:char(36);primaryKey" json:"da_id"`
+	UID                 string     `gorm:"type:char(36);not null;unique" json:"uid"`
+	DivisiID            *string    `gorm:"type:char(36)" json:"divisi_id"`
+	JabatanID           *string    `gorm:"type:char(36)" json:"jabatan_id"`
 	Status              string     `gorm:"type:varchar(50)" json:"status"`
 	AlamatTinggal       string     `gorm:"type:text" json:"alamat_tinggal"`
 	TipeTinggal         string     `gorm:"type:varchar(50)" json:"tipe_tinggal"`
@@ -28,7 +29,7 @@ type DataUser struct {
 	JenisAsuransi       string     `gorm:"type:varchar(100)" json:"jenis_asuransi"`
 	NamaAsuransi        string     `gorm:"type:varchar(100)" json:"nama_asuransi"`
 	StatusPerkawinan    string     `gorm:"type:varchar(20)" json:"status_perkawinan"`
-	IDFamily            *uuid.UUID `gorm:"type:uuid" json:"id_family"`
+	IDFamily            *string    `gorm:"type:char(36)" json:"id_family"`
 	NomorTelepon        string     `gorm:"type:varchar(15)" json:"nomor_telepon"`
 	NomorTeleponSecond  *string    `gorm:"type:varchar(15)" json:"nomor_telepon_second"`
 	NomorTeleponDarurat *string    `gorm:"type:varchar(15)" json:"nomor_telepon_darurat"`
@@ -37,9 +38,16 @@ type DataUser struct {
 	TipeBank            string     `gorm:"type:varchar(50)" json:"tipe_bank"`
 
 	// Relasi
-	User    *User    `gorm:"foreignKey:UID" json:"user,omitempty"`
-	Divisi  *Divisi  `gorm:"foreignKey:DivisiID" json:"divisi,omitempty"`
-	Jabatan *Jabatan `gorm:"foreignKey:JabatanID" json:"jabatan,omitempty"`
+	User    *User    `gorm:"foreignKey:UID;references:UID" json:"user,omitempty"`
+	Divisi  *Divisi  `gorm:"foreignKey:DivisiID;references:DivisiID" json:"divisi,omitempty"`
+	Jabatan *Jabatan `gorm:"foreignKey:JabatanID;references:JabatanID" json:"jabatan,omitempty"`
+}
+
+func (d *DataUser) BeforeCreate(tx *gorm.DB) error {
+	if d.DaID == "" {
+		d.DaID = uuid.New().String()
+	}
+	return nil
 }
 
 type DataUserRequest struct {
