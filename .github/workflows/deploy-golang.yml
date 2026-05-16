@@ -32,7 +32,7 @@ jobs:
       - name: Build binary
         run: |
           mkdir -p build
-          GOOS=linux GOARCH=amd64 go build -o build/app .
+          GOOS=linux GOARCH=amd64 go build -o build/hris-api .
 
       - name: Create .env file
         run: |
@@ -54,25 +54,37 @@ jobs:
 
       - name: Copy files to VPS
         run: |
-          ssh -i ~/.ssh/deploy_key -p 22 root@151.240.0.108 "mkdir -p /var/www/hris/api"
+          ssh -i ~/.ssh/deploy_key -p 22 root@151.240.0.108 << 'EOF'
+            set -e
+            mkdir -p /var/www/hris/api
+            rm -rf /var/www/hris/api/app
+            rm -f /var/www/hris/api/hris-api
+          EOF
 
-          scp -i ~/.ssh/deploy_key -P 22 build/app root@151.240.0.108:/var/www/hris/api/
-          scp -i ~/.ssh/deploy_key -P 22 build/.env root@151.240.0.108:/var/www/hris/api/.env
+          scp -i ~/.ssh/deploy_key -P 22 build/hris-api root@151.240.0.108:/tmp/hris-api
+          scp -i ~/.ssh/deploy_key -P 22 build/.env root@151.240.0.108:/tmp/hris.env
+
+          ssh -i ~/.ssh/deploy_key -p 22 root@151.240.0.108 << 'EOF'
+            set -e
+            mv /tmp/hris-api /var/www/hris/api/hris-api
+            mv /tmp/hris.env /var/www/hris/api/.env
+            chmod +x /var/www/hris/api/hris-api
+          EOF
 
       - name: Configure Nginx
         run: |
           ssh -i ~/.ssh/deploy_key -p 22 root@151.240.0.108 << 'EOF'
             set -e
 
-            sudo tee /etc/nginx/sites-available/hris-api > /dev/null << 'NGINX'
+            cat > /etc/nginx/sites-available/hris-api << 'NGINX'
             server {
                 listen 80;
                 server_name 151.240.0.108 _;
 
                 client_max_body_size 50M;
 
-                location / {
-                    proxy_pass http://127.0.0.1:8986;
+                location /api/ {
+                    proxy_pass http://127.0.0.1:8986/;
                     proxy_http_version 1.1;
 
                     proxy_set_header Host $host;
@@ -87,17 +99,18 @@ jobs:
                     proxy_connect_timeout 300;
                     proxy_send_timeout 300;
                 }
+
+                location = /api {
+                    return 301 /api/;
+                }
             }
             NGINX
 
-            sudo ln -sf /etc/nginx/sites-available/hris-api /etc/nginx/sites-enabled/hris-api
+            ln -sf /etc/nginx/sites-available/hris-api /etc/nginx/sites-enabled/hris-api
+            rm -f /etc/nginx/sites-enabled/default
 
-            if [ -f /etc/nginx/sites-enabled/default ]; then
-              sudo rm -f /etc/nginx/sites-enabled/default
-            fi
-
-            sudo nginx -t
-            sudo systemctl reload nginx
+            nginx -t
+            systemctl reload nginx
           EOF
 
       - name: Restart app on VPS
@@ -106,15 +119,18 @@ jobs:
             set -e
 
             cd /var/www/hris/api
-            chmod +x app
+
+            set -a
+            source .env
+            set +a
 
             pm2 delete hris-api || true
-            pm2 start ./app --name hris-api --update-env
+            pm2 start ./hris-api --name hris-api --update-env
             pm2 save
 
             sleep 2
             pm2 list
             pm2 logs hris-api --lines 50 --nostream
 
-            sudo systemctl reload nginx
+            systemctl reload nginx
           EOF
