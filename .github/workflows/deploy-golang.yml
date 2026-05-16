@@ -54,7 +54,7 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT }}
           source: "build/app,build/.env"
-          target: "/var/www/hris-app"
+          target: "/var/www/hris/api"
 
       - name: Restart app on VPS
         uses: appleboy/ssh-action@v1.2.0
