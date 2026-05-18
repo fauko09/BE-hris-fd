@@ -2,6 +2,8 @@
 
 Dokumen ini berisi daftar API HRIS berdasarkan route, handler, model, dan Swagger di project ini.
 
+Untuk ringkasan praktis kebutuhan frontend, flow halaman, bentuk type data, dan catatan integrasi FE, baca juga `FRONTEND_INTEGRATION.md`.
+
 ## Informasi Umum
 
 - **Base URL lokal:** `http://localhost:8080/api/v1`
